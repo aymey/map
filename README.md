@@ -1,2 +1,2 @@
 # map
-simple hash map implementation in c
+very very very simple hash map implementation in c
