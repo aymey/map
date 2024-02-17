@@ -1,6 +1,9 @@
 #include "map.h"
+
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <assert.h>
 
 Map *map_create(void) {
     Map *map = malloc(sizeof(Map));
@@ -39,4 +42,32 @@ static uint64_t hash_key(const char *key) {
     }
 
     return hash;
+}
+
+void *map_get(Map *map, char *key) {
+    uint64_t hash = hash_key(key);
+    size_t index = (size_t)(hash & (uint64_t)(map->capacity - 1));
+
+    while(map->entries[index].key) {
+        if(strcpy(key, map->entries[index].key) == 0)
+            return map->entries[index].value;
+
+        if(++index >= map->capacity)
+            index = 0;
+    }
+
+    return NULL;
+}
+
+const char *map_set(Map *map, char *key, void *value) {
+    assert(value != NULL);
+    if(!value)
+        return NULL;
+
+    if(map->length >= map->capacity/2) {
+        if(!map_expand(map))
+            return NULL
+    }
+
+    return map_set_entry(map->entries, map->capacity, key, value, &map->length);
 }
