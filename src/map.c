@@ -65,9 +65,58 @@ const char *map_set(Map *map, char *key, void *value) {
         return NULL;
 
     if(map->length >= map->capacity/2) {
-        if(!map_expand(map))
-            return NULL
+        if(!_map_expand(map))
+            return NULL;
     }
 
-    return map_set_entry(map->entries, map->capacity, key, value, &map->length);
+    return _map_set_entry(map->entries, map->capacity, key, value, &map->length);
+}
+
+static const char *_map_set_entry(struct MapEntry *entries, size_t capacity,
+        const char *key, void *value, size_t *plength) {
+    uint64_t hash = hash_key(key);
+    size_t index = (size_t)(hash & (uint64_t)(capacity - 1));
+
+    while(entries[index].key) {
+        if(strcmp(key, entries[index].key) == 0) {
+            entries[index].value = value;
+            return entries[index].key;
+        }
+
+        if(++index >= capacity)
+            index = 0;
+    }
+
+    if(plength) {
+        key = strdup(key);
+        if(!key)
+            return NULL;
+        (*plength)++;
+    }
+
+    entries[index].key = (char *)key;
+    entries[index].value = value;
+    return key;
+}
+
+static bool map_expand(Map *map) {
+    size_t new_capacity = map->capacity * 2;
+    if(new_capacity < map->capacity)
+        return false;   // overflow (capacity too large)
+
+    struct MapEntry *new_entries = calloc(new_capacity, sizeof(struct MapEntry));
+    if(!new_entries)
+        return false;
+
+    for(size_t i = 0; i < map->capacity; i++) {
+        struct MapEntry entry = map->entries[i];
+        if(entry.key)
+            _map_set_entry(new_entries, new_capacity,
+                    entry.key, entry.value, NULL);
+    }
+
+    free(map->entries);
+    map->entries = new_entries;
+    map->capacity = new_capacity;
+    return true;
 }
