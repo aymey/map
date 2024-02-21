@@ -17,6 +17,15 @@ typedef struct {
     size_t length;
 } Map;
 
+typedef struct {
+    const char *key;    // current key
+    void *value;        // current value
+
+    // private
+    Map *_map;          // reference to the iterated map
+    size_t _index;      // current index into _map.entries
+} MapIter;
+
 Map *map_create(void);  // Creates a Map and return a pointer to it (NULL if out of memory)
 void map_destroy(Map *map); // Free the map
 
@@ -28,5 +37,8 @@ static const char *_map_set_entry(struct MapEntry *entries, size_t capacity,
 static bool _map_expand(Map *map);                      // expand a map to twice its size
 
 size_t map_length(Map *map);    // amount of items in map
+
+MapIter map_iter(Map *map);
+bool map_next(MapIter *mit);
 
 #endif // __MAP_H__

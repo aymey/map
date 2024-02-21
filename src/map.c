@@ -120,3 +120,29 @@ static bool map_expand(Map *map) {
     map->capacity = new_capacity;
     return true;
 }
+
+size_t map_length(Map *map) {
+    return map->length;
+}
+
+MapIter map_iter(Map *map) {
+    MapIter mit;
+    mit._map = map;
+    mit._index = 0;
+    return mit;
+}
+
+bool map_next(MapIter *mit) {
+    Map *map = mit->_map;
+    while(mit->_index < map->capacity) {
+        size_t i = mit->_index++;
+        if(map->entries[i].key) {
+            struct MapEntry entry = map->entries[i];
+            mit->key = entry.key;
+            mit->value = entry.value;
+            return true;
+        }
+    }
+
+    return false;
+}
